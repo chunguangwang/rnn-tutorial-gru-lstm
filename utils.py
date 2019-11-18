@@ -23,11 +23,11 @@ def load_data(filename="data/reddit-comments-2015-08.csv", vocabulary_size=2000,
 
     # Read the data and append SENTENCE_START and SENTENCE_END tokens
     print("Reading CSV file...")
-    with open(filename, 'rt') as f:
+    with open(filename, 'r') as f:
         reader = csv.reader(f, skipinitialspace=True)
-        reader.next()
+        next(reader)
         # Split full comments into sentences
-        sentences = itertools.chain(*[nltk.sent_tokenize(x[0].decode("utf-8").lower()) for x in reader])
+        sentences = itertools.chain(*[nltk.sent_tokenize(x[0].lower()) for x in reader])
         # Filter sentences
         sentences = [s for s in sentences if len(s) >= min_sent_characters]
         sentences = [s for s in sentences if "http" not in s]
@@ -84,13 +84,13 @@ def save_model_parameters_theano(model, outfile):
         V=model.V.get_value(),
         b=model.b.get_value(),
         c=model.c.get_value())
-    print "Saved model parameters to %s." % outfile
+    print("Saved model parameters to %s." % outfile)
 
 def load_model_parameters_theano(path, modelClass=GRUTheano):
     npzfile = np.load(path)
     E, U, W, V, b, c = npzfile["E"], npzfile["U"], npzfile["W"], npzfile["V"], npzfile["b"], npzfile["c"]
     hidden_dim, word_dim = E.shape[0], E.shape[1]
-    print "Building model model from %s with hidden_dim=%d word_dim=%d" % (path, hidden_dim, word_dim)
+    print("Building model model from %s with hidden_dim=%d word_dim=%d" % (path, hidden_dim, word_dim))
     sys.stdout.flush()
     model = modelClass(word_dim, hidden_dim=hidden_dim)
     model.E.set_value(E)
@@ -113,7 +113,7 @@ def gradient_check_theano(model, x, y, h=0.001, error_threshold=0.01):
         # Get the actual parameter value from the mode, e.g. model.W
         parameter_T = operator.attrgetter(pname)(model)
         parameter = parameter_T.get_value()
-        print "Performing gradient check for parameter %s with size %d." % (pname, np.prod(parameter.shape))
+        print("Performing gradient check for parameter %s with size %d." % (pname, np.prod(parameter.shape)))
         # Iterate over each element of the parameter matrix, e.g. (0,0), (0,1), ...
         it = np.nditer(parameter, flags=['multi_index'], op_flags=['readwrite'])
         while not it.finished:
@@ -136,15 +136,15 @@ def gradient_check_theano(model, x, y, h=0.001, error_threshold=0.01):
             relative_error = np.abs(backprop_gradient - estimated_gradient)/(np.abs(backprop_gradient) + np.abs(estimated_gradient))
             # If the error is to large fail the gradient check
             if relative_error > error_threshold:
-                print "Gradient Check ERROR: parameter=%s ix=%s" % (pname, ix)
-                print "+h Loss: %f" % gradplus
-                print "-h Loss: %f" % gradminus
-                print "Estimated_gradient: %f" % estimated_gradient
-                print "Backpropagation gradient: %f" % backprop_gradient
-                print "Relative Error: %f" % relative_error
+                print("Gradient Check ERROR: parameter=%s ix=%s" % (pname, ix))
+                print("+h Loss: %f" % gradplus)
+                print("-h Loss: %f" % gradminus)
+                print("Estimated_gradient: %f" % estimated_gradient)
+                print("Backpropagation gradient: %f" % backprop_gradient)
+                print("Relative Error: %f" % relative_error)
                 return 
             it.iternext()
-        print "Gradient check for parameter %s passed." % (pname)
+        print("Gradient check for parameter %s passed." % (pname))
 
 
 def print_sentence(s, index_to_word):
